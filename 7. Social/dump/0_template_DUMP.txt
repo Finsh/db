@@ -1,0 +1,14 @@
+
+mysqldump -uroot --opt  mydb --character-sets-dir="W:/usr/local/mysql-5.5/share/charsets/" > W:/home/localhost/www/jLife/DataBase/dump/dump_mydb.sql
+
+mysqldump -uroot --opt  mydb --character-sets-dir="W:/usr/local/mysql-5.5/share/charsets/" | mysql -uroot --host=localhost -C mydb2
+
+
+
+
+
+dump => db
+
+mysqldump -uroot mydb --character-sets-dir="W:/usr/local/mysql-5.5/share/charsets/" < W:/home/localhost/www/jLife/DataBase/dump/dump_mydb.sql
+
+mysqldump -uroot mydb2 < W:/home/localhost/www/jLife/DataBase/dump/dump_mydb_[30.05.2013][oleg].sql

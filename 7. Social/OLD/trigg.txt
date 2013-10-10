@@ -1,0 +1,112 @@
+CREATE TRIGGER `wallNNN_AINS` AFTER INSERT ON  `wallNNN`  FOR EACH  ROW 
+if (NEW.extension is NULL) THEN
+UPDATE profile SET countwall = countwall +1 WHERE profile.id =NNN;
+END IF;
+
+CREATE TRIGGER `wallNNN_ADEL` AFTER DELETE ON  `wallNNN` FOR EACH ROW 
+if (OLD.extension is NULL) THEN
+UPDATE profile SET countwall = countwall -1 WHERE profile.id =NNN;
+END IF;
+
+CREATE TRIGGER commentwallNNN_AINS AFTER INSERT ON commentwallNNN FOR EACH ROW 
+if (NEW.extension is NULL) THEN
+UPDATE wallNNN SET countcomment= countcomment + 1 WHERE wallNNN.id=NEW.wallNNN_id;
+END IF;
+
+CREATE TRIGGER commentwallNNN_ADEL AFTER DELETE ON commentwallNNN FOR EACH ROW 
+if (OLD.extension is NULL) THEN
+UPDATE wallNNN SET countcomment= countcomment - 1 WHERE wallNNN.id=OLD.wallNNN_id;
+END IF;
+
+CREATE TRIGGER `likewallNNN_AINS` AFTER INSERT ON  `likewallNNN` FOR EACH ROW 
+UPDATE wallNNN SET countlike = countlike +1 WHERE wallNNN.id = new.wallNNN_id;
+
+CREATE TRIGGER `likewallNNN_ADEL` AFTER DELETE ON  `likewallNNN` FOR EACH ROW 
+UPDATE wallNNN SET countlike = countlike -1 WHERE wallNNN.id = old.wallNNN_id;
+
+CREATE TRIGGER `likecommentwallNNN_AINS` AFTER INSERT ON  `likecommentwallNNN` FOR EACH ROW 
+UPDATE commentwallNNN SET countlike = countlike +1 WHERE commentwallNNN.id = New.commentwallNNN_id;
+
+CREATE TRIGGER `likecommentwallNNN_ADEL` AFTER DELETE ON  `likecommentwallNNN` FOR EACH ROW 
+UPDATE commentwallNNN SET countlike = countlike -1 WHERE commentwallNNN.id = old.commentwallNNN_id;
+
+
+CREATE TRIGGER `spisokcontactgroupuserNNN_BINS` before INSERT ON  `spisokcontactgroupuserNNN` FOR EACH ROW 
+BEGIN
+	if NEW.contactgroupNNN_id IS NOT NULL and NEW.state = 0 then
+		UPDATE contactgroupNNN SET countuser = countuser +1 WHERE contactgroupNNN.id =NEW.contactgroupNNN_id;
+		SET @a= (Select count(*) from spisokcontactgroupuserNNN where iduser = NEW.iduser);
+		if @a<=0 then
+			UPDATE profile SET countcontact = countcontact +1 WHERE profile.id =NNN;
+		END IF;
+	END IF;
+END $$
+
+
+CREATE TRIGGER `spisokcontactgroupuserNNN_ADEL` AFTER DELETE ON  `spisokcontactgroupuserNNN` FOR EACH ROW 
+BEGIN
+	if OLD.contactgroupNNN_id IS NOT NULL and OLD.state =0 then
+		UPDATE contactgroupNNN SET countuser = countuser -1 WHERE contactgroupNNN.id =OLD.contactgroupNNN_id;
+		SET @a= (Select count(*) from spisokcontactgroupuserNNN where iduser = OLD.iduser);
+		if @a<=0 then
+			UPDATE profile SET countcontact = countcontact -1 WHERE profile.id =NNN;
+		END IF;
+	END IF;
+END $$
+
+CREATE TRIGGER `contactgroupNNN_BDEL` BEFORE DELETE ON contactgroupNNN FOR EACH ROW
+BEGIN
+	UPDATE spisokcontactgroupuserNNN SET state = 2 WHERE contactgroupNNN_id = OLD.id 
+	AND iduser not in (SELECT * FROM (SELECT DISTINCT iduser FROM spisokcontactgroupuserNNN WHERE contactgroupNNN_id != OLD.id) AS X);
+END $$
+
+CREATE TRIGGER `contactgroupNNN_ADEL` AFTER DELETE ON contactgroupNNN FOR EACH ROW
+BEGIN	
+	DELETE FROM spisokcontactgroupuserNNN WHERE contactgroupNNN_id is null
+	AND state =0;
+END $$
+
+CREATE TRIGGER `spisokcontactgroupuserNNN_AUPD` after update ON  `spisokcontactgroupuserNNN` FOR EACH ROW 
+BEGIN
+	UPDATE profile SET countcontact = (Select count(*) from (select distinct iduser as x from spisokcontactgroupuserNNN where state = 0) as y) where id =NNN;
+	if OLD.contactgroupNNN_id is null and NEW.contactgroupNNN_id is not null then
+		UPDATE contactgroupNNN SET countuser = (Select count(*) from 
+												(select distinct iduser as x from spisokcontactgroupuserNNN 	
+												where state = 0 and contactgroupNNN_id = NEW.contactgroupNNN_id) 
+											as y) 
+		where id =NEW.contactgroupNNN_id;
+	end if;
+	if OLD.contactgroupNNN_id is not null and NEW.contactgroupNNN_id is null then
+		UPDATE contactgroupNNN SET countuser = (Select count(*) from 
+												(select distinct iduser as x from spisokcontactgroupuserNNN 	
+												where state = 0 and contactgroupNNN_id = OLD.contactgroupNNN_id) 
+											as y) 
+		where id =OLD.contactgroupNNN_id;
+	end if;
+	if OLD.contactgroupNNN_id is not null and OLD.state = 0 and NEW.state != 0  then
+		UPDATE contactgroupNNN SET countuser = (Select count(*) from 
+												(select distinct iduser as x from spisokcontactgroupuserNNN 	
+												where state = 0 and contactgroupNNN_id = OLD.contactgroupNNN_id) 
+											as y) 
+		where id =OLD.contactgroupNNN_id;
+	end if;
+	if OLD.contactgroupNNN_id is not null and OLD.state != 0 and NEW.state = 0  then
+		UPDATE contactgroupNNN SET countuser = (Select count(*) from 
+												(select distinct iduser as x from spisokcontactgroupuserNNN 	
+												where state = 0 and contactgroupNNN_id = OLD.contactgroupNNN_id) 
+											as y) 
+		where id =OLD.contactgroupNNN_id;
+	end if;
+	if OLD.contactgroupNNN_id != NEW.contactgroupNNN_id  then
+		UPDATE contactgroupNNN SET countuser = (Select count(*) from 
+												(select distinct iduser as x from spisokcontactgroupuserNNN 	
+												where state = 0 and contactgroupNNN_id = OLD.contactgroupNNN_id) 
+											as y) 
+		where id =OLD.contactgroupNNN_id;
+		UPDATE contactgroupNNN SET countuser = (Select count(*) from 
+												(select distinct iduser as x from spisokcontactgroupuserNNN 	
+												where state = 0 and contactgroupNNN_id = NEW.contactgroupNNN_id) 
+											as y) 
+		where id =NEW.contactgroupNNN_id;
+	end if;
+END

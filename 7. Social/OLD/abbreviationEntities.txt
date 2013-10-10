@@ -1,0 +1,22 @@
+mes - message
+ava- avatar
+con - contact
+gr - group
+sp - spisok
+wll - wall
+blg - blog
+mtk - metka
+alb - album
+ss - subscriber
+pht - photo  
+lk - like
+hb - headband
+nws - news
+prs - personal
+org - organizer
+prf - profile
+usr - user
+ct - count
+lkcomspalbpht
+
+fk_[a-zA-Z0-9?_]{10,}
